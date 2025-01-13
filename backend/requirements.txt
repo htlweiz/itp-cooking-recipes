@@ -1,0 +1,9 @@
+tortoise-orm
+fastapi
+uvicorn
+pydantic
+asyncpg
+python-dotenv
+aiomysql
+pydantic[email]
+httpx

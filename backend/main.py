@@ -1,0 +1,61 @@
+from fastapi import FastAPI
+from api.users import router as users_router
+from api.steps import router as steps_router
+from api.recipes import router as recipes_router
+from api.ingredients import router as ingredients_router
+from api.auth import router as auth_router
+
+from tortoise import Tortoise
+from tortoise.contrib.fastapi import register_tortoise
+import dotenv
+import os
+import aiomysql
+
+dotenv.load_dotenv()
+
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+
+async def create_database():
+    conn = await aiomysql.connect(user=os.getenv('DB_USER'), password=os.getenv('DB_PASSWORD'), host='db')
+    async with conn.cursor() as cursor:
+        try:
+            await cursor.execute(f'CREATE DATABASE `{os.getenv("DB_NAME")}`')
+        except aiomysql.Error as e:
+            if e.args[0] != 1007:
+                raise
+    conn.close()
+
+async def init():
+    await create_database()
+    await Tortoise.init(
+        db_url=DATABASE_URL,
+        modules={'models': ["models"]}
+    )
+    await Tortoise.generate_schemas(safe=True)
+
+
+app = FastAPI()
+
+app.include_router(users_router, tags=["Users"])
+app.include_router(steps_router, tags=["Steps"])
+app.include_router(recipes_router, tags=["Recipes"])
+app.include_router(ingredients_router, tags=["Ingredients"])
+app.include_router(auth_router, tags=["Auth"])
+
+register_tortoise(
+    app,
+    db_url=DATABASE_URL,
+    modules={'models': ['models']},
+    generate_schemas=True,
+    add_exception_handlers=True,
+)
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(init())
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
