@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import CreateRecipeView from '../components/Recipe.vue'
+import { isAuthenticated } from '../services/user';
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -15,4 +16,12 @@ const router = createRouter({
   routes,
 });
 
-export default router
+router.beforeEach((to, from, next) => {
+  if (to.path === '/create_recipe' && !isAuthenticated()) {
+    next('/login');
+  } else {
+    next();
+  }
+});
+
+export default router;

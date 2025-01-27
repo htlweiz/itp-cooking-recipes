@@ -78,12 +78,17 @@
 <script setup>
 import { ref } from 'vue';
 import { MailIcon, LockIcon, EyeIcon, EyeOffIcon } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
+import { login } from '../services/user';
+
+const router = useRouter();
 
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref('');
+let isAuthenticated = ref(false);
 
 function togglePassword() {
     showPassword.value = !showPassword.value;
@@ -92,10 +97,16 @@ function togglePassword() {
 function handleSubmit() {
     isLoading.value = true;
     errorMessage.value = '';
-
+    
     setTimeout(() => {
         console.log('Email:', email.value);
         console.log('Password:', password.value);
+        if (email.value === 'test@example.com' && password.value === 'password') {
+            login('mock-token', email.value);
+            router.push('/home');
+        } else {
+            errorMessage.value = 'Invalid email or password';
+        }
         isLoading.value = false;
     }, 1500);
 }

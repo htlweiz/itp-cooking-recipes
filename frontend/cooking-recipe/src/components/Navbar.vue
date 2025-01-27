@@ -26,7 +26,7 @@
               </button>
             </div>
           </div>
-          <div class="ml-6 flex items-center hidden sm:block">
+          <div v-if="!isUserAuthenticated" class="ml-6 flex items-center hidden sm:block">
             <a
               href="/login"
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 
@@ -35,6 +35,15 @@
               <UserIcon class="h-5 w-5 mr-2" />
               Login
             </a>
+          </div>
+          <div v-else class="ml-6 flex items-center hidden sm:block">
+            <button
+              @click="handleLogout"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 
+              hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Logout
+            </button>
           </div>
           <button
             class="sm:hidden text-gray-500 hover:text-gray-700 focus:outline-none"
@@ -83,11 +92,13 @@
 <script setup>
 import { ref } from 'vue';
 import { UtensilsCrossedIcon, SearchIcon, UserIcon, MenuIcon, XIcon } from 'lucide-vue-next';
+import { isAuthenticated, logout } from '../services/user';
 
 const searchQuery = ref('');
 const isMobileMenuOpen = ref(false);
 const isSearchBarOpen = ref(false);
-  
+let isUserAuthenticated = ref(isAuthenticated());
+
 function performSearch() {
   console.log('Suche nach:', searchQuery.value);
 }
@@ -99,5 +110,11 @@ function toggleMobileMenu() {
 function toggleSearchBar() {
   isSearchBarOpen.value = !isSearchBarOpen.value;
 }
+
+function handleLogout() {
+  logout();
+  isUserAuthenticated.value = false;
+  window.location.href = '/login';
+}
+
 </script>
-  

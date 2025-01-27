@@ -19,3 +19,12 @@ Ziel:
 Erreicht:
 - Login Component designet
 - Navbar erstellt und designet
+
+## 27.01.2025
+Ziel:
+- Login mock
+- Kochrezept Component erstellen (Titel, Beschreibung, Zutaten, Schritte)
+
+Erreicht:
+- Login gemockt
+- Kochrezept Component erstellt (Titel, Beschreibung)
