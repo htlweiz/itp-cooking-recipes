@@ -34,12 +34,18 @@ class Ingredients(Model):
     carbs = fields.FloatField(null=False)
     protein = fields.FloatField(null=False)
     related_user = fields.ForeignKeyField("models.Users", related_name="ingredients")
+
+    class Meta:
+        unique_together = ("name", "related_user")
     
 class Steps(Model):
     id = fields.IntField(pk=True)
     step_number = fields.IntField(null=False)
     instruction = fields.TextField(null=False)
     related_recipe = fields.ForeignKeyField("models.Recipes", related_name="steps")
+
+    class Meta:
+        unique_together = ("related_recipe", "step_number")
 
 
 class Stars(Model):
