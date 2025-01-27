@@ -102,3 +102,20 @@ class Step(BaseModel):
 
     class Config:
         orm_mode: True
+
+class StarsCreate(BaseModel):
+    rating: int
+    related_user_id: int
+    related_recipe_id: int
+
+class StarsUpdate(BaseModel):
+    rating: Optional[int]
+
+class Stars(BaseModel):
+    id: int
+    rating: int
+    related_user_id: int
+    related_recipe_id: int
+
+    class Config:
+        orm_mode: True

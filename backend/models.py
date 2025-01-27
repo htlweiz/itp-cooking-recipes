@@ -40,3 +40,13 @@ class Steps(Model):
     step_number = fields.IntField(null=False)
     instruction = fields.TextField(null=False)
     related_recipe = fields.ForeignKeyField("models.Recipes", related_name="steps")
+
+
+class Stars(Model):
+    id = fields.IntField(pk=True)
+    rating = fields.IntField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    related_user = fields.ForeignKeyField("models.Users", related_name="stars")
+    related_recipe = fields.ForeignKeyField("models.Recipes", related_name="stars")
+
+    class Meta:
+        unique_together = ("related_user", "related_recipe")

@@ -5,6 +5,7 @@ from api.recipes import router as recipes_router
 from api.ingredients_recipes import router as ingredients_recipes_router
 from api.auth import router as auth_router
 from api.ingredients import router as ingredients_router
+from api.stars import router as stars_router
 
 from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
@@ -56,6 +57,7 @@ app.include_router(ingredients_router, tags=["Ingredients"])
 app.include_router(auth_router, tags=["Auth"])
 app.include_router(ingredients_router, tags=["Ingredients"])
 app.include_router(ingredients_recipes_router, tags=["Ingredients_Recipes"])
+app.include_router(stars_router, tags=["Stars"])
 
 register_tortoise(
     app,
