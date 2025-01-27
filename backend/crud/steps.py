@@ -24,3 +24,4 @@ async def update_step(step_id: int, step_data: StepUpdate):
 async def delete_step(step_id: int):
     step = await Steps.get(id=step_id)
     await step.delete()
+    return step

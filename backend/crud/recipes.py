@@ -59,3 +59,4 @@ async def update_recipe(recipe_id: int, recipe_data: RecipeUpdate):
 async def delete_recipe(recipe_id: int):
     recipe = await Recipes.get(id=recipe_id)
     await recipe.delete()
+    return recipe

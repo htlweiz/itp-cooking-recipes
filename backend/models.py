@@ -16,13 +16,25 @@ class Recipes(Model):
     created_at = fields.DatetimeField(auto_now_add=True)
     related_user = fields.ForeignKeyField("models.Users", related_name="recipes")
 
-class Ingredients(Model):
+class Ingredients_Recipes(Model):
     id = fields.IntField(pk=True)
-    name = fields.CharField(max_length=255, null=False)
     amount = fields.FloatField(null=False)
     unit = fields.CharField(max_length=255, null=False)
     related_recipe = fields.ForeignKeyField("models.Recipes", related_name="ingredients")
+    related_ingredient = fields.ForeignKeyField("models.Ingredients", related_name="recipes")
 
+    class Meta:
+        unique_together = ("related_recipe", "related_ingredient")
+
+class Ingredients(Model):
+    id = fields.IntField(pk=True)
+    name = fields.CharField(max_length=255, null=False)
+    calories = fields.FloatField(null=False)
+    fat = fields.FloatField(null=False)
+    carbs = fields.FloatField(null=False)
+    protein = fields.FloatField(null=False)
+    related_user = fields.ForeignKeyField("models.Users", related_name="ingredients")
+    
 class Steps(Model):
     id = fields.IntField(pk=True)
     step_number = fields.IntField(null=False)

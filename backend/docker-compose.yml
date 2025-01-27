@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8
@@ -19,12 +17,13 @@ services:
       retries: 5
 
   web:
-    build: .
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    build:
+      context: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8002 --ssl-keyfile key.pem --ssl-certfile cert.pem
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - "8002:8002"
     depends_on:
       db:
         condition: service_healthy

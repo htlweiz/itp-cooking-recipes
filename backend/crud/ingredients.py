@@ -24,3 +24,4 @@ async def update_ingredient(ingredient_id: int, ingredient_data: IngredientUpdat
 async def delete_ingredient(ingredient_id: int):
     ingredient = await Ingredients.get(id=ingredient_id)
     await ingredient.delete()
+    return ingredient

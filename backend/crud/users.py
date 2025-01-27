@@ -22,6 +22,7 @@ async def update_user(user_id: int, user_data: UserUpdate):
 async def delete_user(user_id: int):
     user = await Users.get(id=user_id)
     await user.delete()
+    return user
 
 async def get_all_users():
     users = await Users.all()

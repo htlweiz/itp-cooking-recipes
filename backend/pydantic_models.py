@@ -36,23 +36,51 @@ class Recipe(BaseModel):
     class Config:
         orm_mode: True
 
-class IngredientCreate(BaseModel):
-    name: str
+
+class IngredientRecipeCreate(BaseModel):
     amount: float
     unit: str
     related_recipe_id: int
+    related_ingredient_id: int
+
+
+class IngredientRecipeUpdate(BaseModel):
+    amount: Optional[float]
+    unit: Optional[str]
+
+class IngredientRecipe(BaseModel):
+    id: int
+    amount: float
+    unit: str
+    related_recipe_id: int
+    related_ingredient_id: int
+
+    class Config:
+        orm_mode: True
+
+
+
+class IngredientCreate(BaseModel):
+    name: str
+    calories: float
+    fat: float
+    carbs: float
+    protein: float
 
 class IngredientUpdate(BaseModel):
     name: Optional[str]
-    amount: Optional[float]
-    unit: Optional[str]
+    calories: Optional[float]
+    fat: Optional[float]
+    carbs: Optional[float]
+    protein: Optional[float]
 
 class Ingredient(BaseModel):
     id: int
     name: str
-    amount: float
-    unit: str
-    related_recipe_id: int
+    calories: float
+    fat: float
+    carbs: float
+    protein: float
 
     class Config:
         orm_mode: True
