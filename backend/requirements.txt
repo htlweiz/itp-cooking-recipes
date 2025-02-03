@@ -7,3 +7,4 @@ python-dotenv
 aiomysql
 pydantic[email]
 httpx
+fastapi_msal[full]

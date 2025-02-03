@@ -20,3 +20,12 @@
 - Model Redesign: seperate ingredients_recipes, added stars for recipes
 - run fastapi in https
 - Mircosoft OAuth weiterimplementiert
+
+
+# 03.02.2025
+## Ziele:
+- Microsoft OAuth
+
+## Erreicht
+- Microsoft OAuth App Registrierung abgeschlossen
+- Microsoft OAuth in FastAPI implementiert
