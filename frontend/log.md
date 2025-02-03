@@ -28,3 +28,12 @@ Ziel:
 Erreicht:
 - Login gemockt
 - Kochrezept Component erstellt (Titel, Beschreibung)
+
+## 03.02.2025
+Ziel: 
+- Formular zur Rezept Erstellung fertig stellen
+- Rezepte auf der Home Seite anzeigen
+
+Erreicht:
+- Formular zur Rezept Erstellung fertig gestellt
+- Rezepte auf der Home Seite anzeigen
