@@ -2,18 +2,18 @@
     <div class="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl w-full space-y-8 bg-white p-10 rounded-xl shadow-md">
             <div class="flex justify-between items-center">
-                <router-link to="/" class="text-indigo-600 hover:text-indigo-800 focus:outline-indigo-500">
+                <router-link :to="`/recipe/${recipeId}`" class="text-indigo-600 hover:text-indigo-800 focus:outline-indigo-500">
                     <ArrowLeftIcon color="black" class="h-8 w-8" />
                 </router-link>
                 <div>
-                    <h2 class="text-center text-3xl font-extrabold text-gray-900">Rezept erstellen</h2>
+                    <h2 class="text-center text-3xl font-extrabold text-gray-900">Rezept bearbeiten</h2>
                     <p class="mt-2 text-center text-sm text-gray-600">
-                        Fügen Sie alle Details Ihres Rezepts hinzu
+                        Aktualisieren Sie die Details Ihres Rezepts
                     </p>
                 </div>
                 <div class="w-8"></div>
             </div>
-            <form @submit.prevent="createRecipe" class="mt-8 space-y-6">
+            <form @submit.prevent="updateRecipe" class="mt-8 space-y-6">
                 <div class="space-y-4">
                     <div>
                         <label for="title" class="block text-lg font-medium text-gray-900">Titel</label>
@@ -100,7 +100,7 @@
                     <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium 
                     text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
-                        Rezept speichern
+                        Rezept aktualisieren
                     </button>
                 </div>
             </form>
@@ -109,50 +109,76 @@
 </template>
   
 <script setup>
-import { ref } from 'vue'
-import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, ArrowLeftIcon } from 'lucide-vue-next'
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, ArrowLeftIcon } from 'lucide-vue-next';
+
+const route = useRoute();
+const router = useRouter();
+const recipeId = route.params.id;
 
 const recipe = ref({
     title: '',
     description: '',
     ingredients: [{ name: '', amount: '', unit: 'g', calories: 0, protein: 0, carbs: 0, fat: 0 }],
     steps: [{ instruction: '' }]
-})
+});
+
+onMounted(() => {
+    console.log('Fetching recipe data for ID:', recipeId);
+
+    recipe.value = {
+        title: 'Spaghetti Carbonara',
+        description: 'Ein klassisches italienisches Gericht mit Speck, Eiern und Parmesan.',
+        ingredients: [
+            { name: 'Spaghetti', amount: '200', unit: 'g' },
+            { name: 'Speck', amount: '100', unit: 'g' },
+            { name: 'Eier', amount: '2', unit: 'Stück' },
+            { name: 'Parmesan', amount: '50', unit: 'g' }
+        ],
+        steps: [
+            { instruction: 'Spaghetti in Salzwasser kochen.' },
+            { instruction: 'Speck in einer Pfanne anbraten.' },
+            { instruction: 'Eier und Parmesan vermischen.' },
+            { instruction: 'Spaghetti abgießen und mit Speck und Eiermischung vermengen.' }
+        ]
+    };
+});
 
 function addIngredient() {
-  recipe.value.ingredients.push({ name: '', amount: '', unit: 'g' })
+  recipe.value.ingredients.push({ name: '', amount: '', unit: 'g' });
 }
 
 function removeIngredient(index) {
-  recipe.value.ingredients.splice(index, 1)
+  recipe.value.ingredients.splice(index, 1);
   if (recipe.value.ingredients.length === 0) {
-    addIngredient()
+    addIngredient();
   }
 }
 
 function addStep() {
-  recipe.value.steps.push({ instruction: '' })
+  recipe.value.steps.push({ instruction: '' });
 }
 
 function removeStep(index) {
-  recipe.value.steps.splice(index, 1)
+  recipe.value.steps.splice(index, 1);
   if (recipe.value.steps.length === 0) {
-    addStep()
+    addStep();
   }
 }
 
 function moveStep(index, direction) {
-  const newIndex = index + direction
+  const newIndex = index + direction;
   if (newIndex >= 0 && newIndex < recipe.value.steps.length) {
-    const steps = recipe.value.steps
-    ;[steps[index], steps[newIndex]] = [steps[newIndex], steps[index]]
+    const steps = recipe.value.steps;
+    [steps[index], steps[newIndex]] = [steps[newIndex], steps[index]];
   }
 }
 
-function createRecipe() {
-  const newRecipe = {
+function updateRecipe() {
+  const updatedRecipe = {
     ...recipe.value,
-    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ingredients: recipe.value.ingredients.filter(ing => ing.name.trim() !== ''),
     steps: recipe.value.steps
       .filter(step => step.instruction.trim() !== '')
@@ -160,9 +186,9 @@ function createRecipe() {
         ...step,
         step_number: index + 1
       }))
-  }
+  };
 
-  console.log('Neues Rezept:', newRecipe)
+  console.log('Aktualisiertes Rezept:', updatedRecipe);
+  router.push(`/recipe/${recipeId}`);
 }
-
 </script>

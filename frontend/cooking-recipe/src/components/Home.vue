@@ -22,7 +22,7 @@
           </div>
         </div>
       </div>
-      <div class="floating-action-button">
+      <div v-if="isAuthenticated()" class="floating-action-button">
         <button
           class="fixed bottom-10 right-8 sm:right-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold p-4 
           rounded-full shadow-md transition-all duration-300 ease-in-out transform hover:scale-110 focus:outline-none"
@@ -40,6 +40,7 @@ import Navbar from './Navbar.vue';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { PlusIcon, StarIcon } from 'lucide-vue-next';
+import { isAuthenticated } from '../services/user.js';
 
 const recipes = ref([
   {
@@ -80,5 +81,6 @@ function goToRecipeDetail(id) {
 
 onMounted(() => {
   console.log('Home component is mounted');
+
 });
 </script>

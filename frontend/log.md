@@ -37,3 +37,11 @@ Ziel:
 Erreicht:
 - Formular zur Rezept Erstellung fertig gestellt
 - Rezepte auf der Home Seite anzeigen
+
+## 10.2.2025
+Ziel:
+- RecipeDatail Seite erstellen
+
+Erreicht:
+- RecipeDatail Seite erstellt
+- Update Recipe Seite erstellt

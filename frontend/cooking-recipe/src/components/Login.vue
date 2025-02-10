@@ -103,7 +103,7 @@ function handleSubmit() {
         console.log('Password:', password.value);
         if (email.value === 'test@example.com' && password.value === 'password') {
             login('mock-token', email.value);
-            router.push('/home');
+            router.push('/');
         } else {
             errorMessage.value = 'Invalid email or password';
         }
