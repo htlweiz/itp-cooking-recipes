@@ -1,8 +1,8 @@
 from models import Ingredients
 from pydantic_models import IngredientCreate, IngredientUpdate
 
-async def create_ingredient(ingredient_data: IngredientCreate):
-    ingredient = await Ingredients.create(**ingredient_data.dict())
+async def create_ingredient(ingredient_data: IngredientCreate, user_id: str):
+    ingredient = await Ingredients.create(name=ingredient_data.name, calories=ingredient_data.calories, fat=ingredient_data.fat, carbs=ingredient_data.carbs, protein=ingredient_data.protein, related_user_id=user_id)
     return ingredient
 
 async def get_ingredient(ingredient_id: int):

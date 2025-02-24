@@ -37,3 +37,8 @@ async def delete_star(star_id: int, current_user: UserInfo = Depends(msal_auth.s
     if not star:
         raise HTTPException(status_code=404, detail="Star not found")
     return {"message": "Star deleted successfully"}
+
+@router.get("/{recipe_id}/stars", response_model=float)
+async def get_average_stars_per_recipe(recipe_id: int, current_user: UserInfo = Depends(msal_auth.scheme)):
+    stars_count = await stars.get_average_stars_per_recipe(recipe_id)
+    return stars_count

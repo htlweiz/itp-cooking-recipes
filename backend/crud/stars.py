@@ -32,3 +32,10 @@ async def delete_star(star_id: int):
     star = await Stars.get(id=star_id)
     await star.delete()
     return star
+
+async def get_average_stars_per_recipe(recipe_id: int):
+    stars = await Stars.filter(related_recipe_id=recipe_id)
+    if not stars:
+        return 0
+    stars_count = sum([star.stars for star in stars]) / len(stars)
+    return stars_count

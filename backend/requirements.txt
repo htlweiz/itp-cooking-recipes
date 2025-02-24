@@ -8,3 +8,4 @@ aiomysql
 pydantic[email]
 httpx
 fastapi_msal[full]
+aiofiles 

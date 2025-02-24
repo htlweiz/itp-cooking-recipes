@@ -9,7 +9,7 @@ router = APIRouter(prefix="/ingredients")
 
 @router.post("/", response_model=Ingredient)
 async def create_ingredient(ingredient_data: IngredientCreate, current_user: UserInfo = Depends(msal_auth.scheme)):
-    ingredient = await ingredients.create_ingredient(ingredient_data)
+    ingredient = await ingredients.create_ingredient(ingredient_data, current_user.user_id)
     return ingredient
 
 @router.get("/{ingredient_id}", response_model=Ingredient)
@@ -20,7 +20,7 @@ async def get_ingredient(ingredient_id: int, current_user: UserInfo = Depends(ms
     return ingredient
 
 @router.get("/", response_model=List[Ingredient])
-async def get_all_ingredients():
+async def get_all_ingredients(current_user: UserInfo = Depends(msal_auth.scheme)):
     ingredients_list = await ingredients.get_all_ingredients()
     return ingredients_list
 

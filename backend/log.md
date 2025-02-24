@@ -29,3 +29,15 @@
 ## Erreicht
 - Microsoft OAuth App Registrierung abgeschlossen
 - Microsoft OAuth in FastAPI implementiert
+
+# 24.02.2025
+## Ziele:
+- Bilder hinzufügen
+- Frontend + Backend zusammenfügen
+- Route für Durchschnittsbewertungen
+
+## Erreicht
+- Bilder hinzufügen in DB und Routen hinzugefügt
+- Route für Durchschnittsberwertung hinzugefügt
+- prefetching für alles notwendige für Recipes
+- Zusammenführen Backend und Frontend

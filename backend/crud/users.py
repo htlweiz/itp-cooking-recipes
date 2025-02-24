@@ -1,15 +1,16 @@
 from models import Users
 from pydantic_models import UserCreate, UserUpdate
 
-async def create_user(user_data: UserCreate):
-    print(user_data)
-    print("\n\n\n\n\n")
-    user = await Users.create(username=user_data.username, email=user_data.email)
+async def create_user(user_id: str, username: str, email: str):
+    user = await Users.create(id=user_id, username=username, email=email)
     return user
 
 async def get_user(user_id: int):
-    user = await Users.get(id=user_id)
-    return user
+    try:
+        user = await Users.get(id=user_id)
+        return user
+    except:
+        return None
 
 async def update_user(user_id: int, user_data: UserUpdate):
     user = await Users.get(id=user_id)

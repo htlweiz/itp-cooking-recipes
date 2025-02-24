@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
+from fastapi.responses import FileResponse
 
 class UserCreate(BaseModel):
     username: str
@@ -10,7 +11,7 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr]
 
 class User(BaseModel):
-    id: int
+    id: str
     username: str
     email: EmailStr
 
@@ -20,7 +21,6 @@ class User(BaseModel):
 class RecipeCreate(BaseModel):
     title: str
     description: Optional[str]
-    related_user_id: int
 
 class RecipeUpdate(BaseModel):
     title: Optional[str]
@@ -31,7 +31,10 @@ class Recipe(BaseModel):
     title: str
     description: Optional[str]
     created_at: str
-    related_user_id: int
+    related_user_id: str
+    ingredients: List
+    steps: List
+    average_stars: float
 
     class Config:
         orm_mode: True
@@ -88,6 +91,7 @@ class Ingredient(BaseModel):
 class StepCreate(BaseModel):
     step_number: int
     instruction: str
+    title: Optional[str]
     related_recipe_id: int
 
 class StepUpdate(BaseModel):
@@ -97,6 +101,7 @@ class StepUpdate(BaseModel):
 class Step(BaseModel):
     id: int
     step_number: int
+    title: Optional[str]
     instruction: str
     related_recipe_id: int
 
@@ -105,7 +110,7 @@ class Step(BaseModel):
 
 class StarsCreate(BaseModel):
     rating: int
-    related_user_id: int
+    related_user_id: str
     related_recipe_id: int
 
 class StarsUpdate(BaseModel):
@@ -114,7 +119,7 @@ class StarsUpdate(BaseModel):
 class Stars(BaseModel):
     id: int
     rating: int
-    related_user_id: int
+    related_user_id: str
     related_recipe_id: int
 
     class Config:
