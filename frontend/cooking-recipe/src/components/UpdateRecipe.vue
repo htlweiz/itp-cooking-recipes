@@ -112,6 +112,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, ArrowLeftIcon } from 'lucide-vue-next';
+import recipeService  from '../services/recipeService.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -124,7 +125,7 @@ const recipe = ref({
     steps: [{ instruction: '' }]
 });
 
-onMounted(() => {
+onMounted(async () => {
     console.log('Fetching recipe data for ID:', recipeId);
 
     recipe.value = {
@@ -143,6 +144,14 @@ onMounted(() => {
             { instruction: 'Spaghetti abgießen und mit Speck und Eiermischung vermengen.' }
         ]
     };
+    try {
+        const response = await recipeService.getRecipe(recipeId);
+        console.log('Fetched recipe:', response.data);
+        recipe.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch recipe:', error);
+    }
+
 });
 
 function addIngredient() {
@@ -187,6 +196,11 @@ function updateRecipe() {
         step_number: index + 1
       }))
   };
+  try {
+    recipeService.updateRecipe(recipeId, updatedRecipe);
+  } catch (error) {
+    console.error('Failed to update recipe:', error);
+  }
 
   console.log('Aktualisiertes Rezept:', updatedRecipe);
   router.push(`/recipe/${recipeId}`);

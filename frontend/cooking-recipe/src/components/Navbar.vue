@@ -92,7 +92,7 @@
 <script setup>
 import { ref } from 'vue';
 import { UtensilsCrossedIcon, SearchIcon, UserIcon, MenuIcon, XIcon } from 'lucide-vue-next';
-import { isAuthenticated, logout } from '../services/user';
+import { isAuthenticated, logout } from '../services/userService';
 
 const searchQuery = ref('');
 const isMobileMenuOpen = ref(false);
@@ -101,6 +101,7 @@ let isUserAuthenticated = ref(isAuthenticated());
 
 function performSearch() {
   console.log('Suche nach:', searchQuery.value);
+  
 }
 
 function toggleMobileMenu() {

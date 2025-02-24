@@ -45,3 +45,12 @@ Ziel:
 Erreicht:
 - RecipeDatail Seite erstellt
 - Update Recipe Seite erstellt
+
+## 24.02.2025
+Ziel:
+- API Routen einbauen
+- Suchfunktion für die Rezepte
+
+Erreicht:
+- Vue Projekt läuft auf https (vite-plugin-mkcert)
+- Recipe werden gefetcht und können gelöscht werden

@@ -7,6 +7,9 @@
         <p class="mt-4 text-lg text-gray-600">Entdecken Sie köstliche Rezepte und teilen Sie Ihre kulinarischen Kreationen mit der Welt.</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div v-if="recipes.length === 0" class="text-center text-gray-600 mt-8">
+          <p class="text-lg">Keine Rezepte gefunden.</p>
+        </div>
         <div v-for="(recipe, index) in recipes" :key="index" class="shadow-md p-4 rounded-lg bg-white cursor-pointer" @click="goToRecipeDetail(recipe.id)">
           <img :src="recipe.image" alt="Recipe image" class="w-full h-48 object-cover" />
           <div class="mt-4">
@@ -40,34 +43,38 @@ import Navbar from './Navbar.vue';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { PlusIcon, StarIcon } from 'lucide-vue-next';
-import { isAuthenticated } from '../services/user.js';
+import { isAuthenticated } from '../services/userService.js';
+import recipeService  from '../services/recipeService.js';
 
-const recipes = ref([
-  {
-    id: 1,
-    title: 'Spaghetti Carbonara',
-    description: 'Ein klassisches italienisches Gericht mit Speck, Eiern und Parmesan.',
-    created_by: 'Chef Luigi',
-    image: 'https://example.com/spaghetti-carbonara.jpg',
-    rating: 4
-  },
-  {
-    id: 2,
-    title: 'Caesar Salad',
-    description: 'Ein frischer Salat mit Römersalat, Croutons und Caesar-Dressing.',
-    created_by: 'Chef Julia',
-    image: 'https://example.com/caesar-salad.jpg',
-    rating: 5
-  },
-  {
-    id: 3,
-    title: 'Schokoladenkuchen',
-    description: 'Ein reichhaltiger und feuchter Schokoladenkuchen, perfekt für jeden Anlass.',
-    created_by: 'Chef Anna',
-    image: 'https://example.com/chocolate-cake.jpg',
-    rating: 3
-  }
-]);
+// const recipes = ref([
+//   {
+//     id: 1,
+//     title: 'Spaghetti Carbonara',
+//     description: 'Ein klassisches italienisches Gericht mit Speck, Eiern und Parmesan.',
+//     created_by: 'Chef Luigi',
+//     image: 'https://example.com/spaghetti-carbonara.jpg',
+//     rating: 4
+//   },
+//   {
+//     id: 2,
+//     title: 'Caesar Salad',
+//     description: 'Ein frischer Salat mit Römersalat, Croutons und Caesar-Dressing.',
+//     created_by: 'Chef Julia',
+//     image: 'https://example.com/caesar-salad.jpg',
+//     rating: 5
+//   },
+//   {
+//     id: 3,
+//     title: 'Schokoladenkuchen',
+//     description: 'Ein reichhaltiger und feuchter Schokoladenkuchen, perfekt für jeden Anlass.',
+//     created_by: 'Chef Anna',
+//     image: 'https://example.com/chocolate-cake.jpg',
+//     rating: 3
+//   }
+// ]);
+
+const recipes = ref([]);
+
 
 const router = useRouter();
 
@@ -79,8 +86,18 @@ function goToRecipeDetail(id) {
   router.push(`/recipe/${id}`);
 }
 
-onMounted(() => {
+onMounted(async () => {
   console.log('Home component is mounted');
-
+  try {
+    const recipeResponse = await recipeService.getRecipes();
+    for (let recipe of recipeResponse.data) {
+      const starResponse = await recipeService.getAverageStarsPerRecipe(recipe.id);
+      recipe.rating = starResponse.data;
+    }
+    console.log('Fetched recipes:', recipeResponse.data);
+    recipes.value = recipeResponse.data;
+  } catch (error) {
+    console.error("Error fetching applications:", error);
+  }
 });
 </script>

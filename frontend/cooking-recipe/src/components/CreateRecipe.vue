@@ -111,6 +111,7 @@
 <script setup>
 import { ref } from 'vue'
 import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, ArrowLeftIcon } from 'lucide-vue-next'
+import recipeService  from '../services/recipeService.js';
 
 const recipe = ref({
     title: '',
@@ -149,7 +150,7 @@ function moveStep(index, direction) {
   }
 }
 
-function createRecipe() {
+async function createRecipe() {
   const newRecipe = {
     ...recipe.value,
     created_at: new Date().toISOString(),
@@ -161,7 +162,24 @@ function createRecipe() {
         step_number: index + 1
       }))
   }
+  const createdRecipe = await recipeService.createRecipe(newRecipe)
+  console.log('Neues Rezept:', createdRecipe)
+  for (const ingredient of newRecipe.ingredients) {
+    const newIngredient = {
+        "name": ingredient.name,
+        "calories": 0,
+        "fat": 0,
+        "carbs": 0,
+        "protein": 0
+    }
+    const created = await recipeService.createIngredient(newIngredient)
+    await recipeService.createRecipeIngredient(ingredient.amount, ingredient.unit, createdRecipe.data.id, created.data.id)
+  }
 
+  for (const step of newRecipe.steps) {
+    const created = await recipeService.createStep(step.step_number, step.instruction, 'R', createdRecipe.data.id)
+  }
+  
   console.log('Neues Rezept:', newRecipe)
 }
 

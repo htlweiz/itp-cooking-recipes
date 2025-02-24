@@ -4,7 +4,7 @@ import LoginView from '../views/LoginView.vue';
 import RecipeDetailView from '../views/RecipeDetailView.vue';
 import CreateRecipeView from '../views/CreateRecipeView.vue';
 import UpdateRecipeView from '../views/UpdateRecipeView.vue';
-import { isAuthenticated } from '../services/user';
+import { isAuthenticated } from '../services/userService';
 
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
