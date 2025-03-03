@@ -9,8 +9,8 @@ async def get_ingredient_recipe(ingredient_recipe_id: int):
     ingredient_recipe = await Ingredients_Recipes.get(id=ingredient_recipe_id)
     return ingredient_recipe
 
-async def get_all_ingredient_recipes():
-    ingredient_recipes = await Ingredients_Recipes.all()
+async def get_all_ingredient_recipes(page: int, page_size: int):
+    ingredient_recipes = await Ingredients_Recipes.all().offset(page * page_size).limit(page_size)
     return ingredient_recipes
 
 async def update_ingredient_recipe(ingredient_recipe_id: int, ingredient_recipe_data: IngredientRecipeUpdate):

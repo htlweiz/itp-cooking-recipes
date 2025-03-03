@@ -10,8 +10,8 @@ async def get_step(step_id: int):
     step = await Steps.get(id=step_id)
     return step
 
-async def get_all_steps():
-    steps = await Steps.all()
+async def get_all_steps(page: int, page_size: int):
+    steps = await Steps.all().offset(page * page_size).limit(page_size)
     return steps
 
 async def update_step(step_id: int, step_data: StepUpdate):

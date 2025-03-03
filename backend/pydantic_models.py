@@ -110,7 +110,6 @@ class Step(BaseModel):
 
 class StarsCreate(BaseModel):
     rating: int
-    related_user_id: str
     related_recipe_id: int
 
 class StarsUpdate(BaseModel):

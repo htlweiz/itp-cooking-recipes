@@ -10,8 +10,8 @@ router = APIRouter(prefix="/users")
 
 
 @router.get("/", response_model=List[User])
-async def get_all_users(current_user: UserInfo = Depends(msal_auth.scheme)):
-    users_list = await users.get_all_users()
+async def get_all_users(page: int, page_size: int, current_user: UserInfo = Depends(msal_auth.scheme)):
+    users_list = await users.get_all_users(page=page, page_size=page_size)
     return users_list
 
 @router.get("/{user_id}", response_model=User)

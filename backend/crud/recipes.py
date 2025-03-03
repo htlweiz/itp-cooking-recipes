@@ -58,8 +58,19 @@ async def get_recipe(recipe_id: int):
     }
     return recipe_dict
 
-async def get_all_recipes():
-    recipes = await Recipes.all().prefetch_related("ingredient_recipes").prefetch_related("steps")
+async def get_all_recipes(page: int, page_size: int, user_id: str = None, order_by: str = None):
+    query = Recipes.all().prefetch_related("ingredient_recipes").prefetch_related("steps")
+    
+    if user_id:
+        query = query.filter(related_user_id=user_id)
+    
+    if order_by:
+        if order_by in ["title", "created_at", "related_user_id"]:
+            query = query.order_by(order_by)
+        else:
+            raise ValueError("Invalid order_by field")
+    
+    recipes = await query.offset(page * page_size).limit(page_size)
     recipes_list = []
     for recipe in recipes:
         ingredients_recipe = await recipe.ingredient_recipes.all().prefetch_related("related_ingredient")
@@ -71,7 +82,7 @@ async def get_all_recipes():
                 "instruction": step.instruction
             }
             for step in recipe.steps
-            ]
+        ]
         ingredients_list = [
             {
                 "id": ingredient_recipe.id,

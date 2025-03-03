@@ -9,8 +9,12 @@ async def get_ingredient(ingredient_id: int):
     ingredient = await Ingredients.get(id=ingredient_id)
     return ingredient
 
-async def get_all_ingredients():
-    ingredients = await Ingredients.all()
+async def get_all_ingredients(page: int, page_size: int):
+    ingredients = await Ingredients.all().offset(page * page_size).limit(page_size)
+    return ingredients
+
+async def get_all_ingredients_of_user(page: int, page_size: int, user_id: str):
+    ingredients = await Ingredients.filter(related_user_id=user_id).offset(page * page_size).limit(page_size)
     return ingredients
 
 async def update_ingredient(ingredient_id: int, ingredient_data: IngredientUpdate):

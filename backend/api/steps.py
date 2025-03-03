@@ -14,8 +14,8 @@ async def create_step(step_data: StepCreate, current_user: UserInfo = Depends(ms
     return step
 
 @router.get("/", response_model=List[Step])
-async def get_all_steps(current_user: UserInfo = Depends(msal_auth.scheme)):
-    steps_list = await steps.get_all_steps()
+async def get_all_steps(page: int, page_size: int, current_user: UserInfo = Depends(msal_auth.scheme)):
+    steps_list = await steps.get_all_steps(page=page, page_size=page_size)
     return steps_list
 
 @router.get("/{step_id}", response_model=Step)

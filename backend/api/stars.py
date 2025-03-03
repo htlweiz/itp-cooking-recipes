@@ -9,12 +9,12 @@ router = APIRouter(prefix="/stars")
 
 @router.post("/")
 async def create_star(star_data: StarsCreate, current_user: UserInfo = Depends(msal_auth.scheme)):
-    star = await stars.create_star(star_data)
+    star = await stars.create_star(star_data, current_user.user_id)
     return star
 
 @router.get("/", response_model=List[Stars])
-async def get_all_stars(current_user: UserInfo = Depends(msal_auth.scheme)):
-    stars_list = await stars.get_all_stars()
+async def get_all_stars(page: int, page_size: int, current_user: UserInfo = Depends(msal_auth.scheme)):
+    stars_list = await stars.get_all_stars(page=page, page_size=page_size)
     return stars_list
 
 @router.get("/{star_id}", response_model=Stars)

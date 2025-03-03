@@ -4,7 +4,6 @@ from crud import recipes, users
 from typing import List
 from fastapi_msal import UserInfo
 from api.config import msal_auth
-from fastapi.responses import FileResponse
 import os
 
 router = APIRouter(prefix="/recipes")
@@ -31,8 +30,8 @@ async def create_recipe(recipe_data: RecipeCreate, current_user: UserInfo = Depe
     return recipe
 
 @router.get("/", response_model=List[Recipe])
-async def get_all_recipes(current_user: UserInfo = Depends(get_current_user)):
-    recipes_list = await recipes.get_all_recipes()
+async def get_all_recipes(page: int, page_size: int, user_id: str = None, order_by: str = None, current_user: UserInfo = Depends(get_current_user)):
+    recipes_list = await recipes.get_all_recipes(page=page, page_size=page_size, user_id=user_id, order_by=order_by)
     return recipes_list
 
 @router.get("/{recipe_id}", response_model=Recipe)
@@ -42,7 +41,7 @@ async def get_recipe(recipe_id: int, current_user: UserInfo = Depends(get_curren
         raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe
 
-@router.put("/{recipe_id}", response_model=Recipe)
+@router.put("/{recipe_id}")
 async def update_recipe(recipe_id: int, recipe_data: RecipeUpdate, current_user: UserInfo = Depends(get_current_user)):
     recipe = await recipes.update_recipe(recipe_id, recipe_data)
     if not recipe:

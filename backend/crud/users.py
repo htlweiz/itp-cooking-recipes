@@ -25,6 +25,6 @@ async def delete_user(user_id: int):
     await user.delete()
     return user
 
-async def get_all_users():
-    users = await Users.all()
+async def get_all_users(page: int, page_size: int):
+    users = await Users.all().offset(page * page_size).limit(page_size)
     return users

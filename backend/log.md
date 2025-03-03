@@ -41,3 +41,13 @@
 - Route für Durchschnittsberwertung hinzugefügt
 - prefetching für alles notwendige für Recipes
 - Zusammenführen Backend und Frontend
+
+# 03.03.2025
+## Ziele:
+- Pagination für alle get Routen hinzufügen
+- Fix external login issue
+
+## Erreicht:
+- Pagination hinzugefügt
+- Fixed login problem in Microsoft Entra Admin Center | External Identities | Mandantenübergreifende Zugriffseinstellungen
+- Added filtering and ordering for recipes

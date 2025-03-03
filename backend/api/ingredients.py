@@ -20,8 +20,13 @@ async def get_ingredient(ingredient_id: int, current_user: UserInfo = Depends(ms
     return ingredient
 
 @router.get("/", response_model=List[Ingredient])
-async def get_all_ingredients(current_user: UserInfo = Depends(msal_auth.scheme)):
-    ingredients_list = await ingredients.get_all_ingredients()
+async def get_all_ingredients(page: int, page_size: int, current_user: UserInfo = Depends(msal_auth.scheme)):
+    ingredients_list = await ingredients.get_all_ingredients(page=page, page_size=page_size)
+    return ingredients_list
+
+@router.get("/self/", response_model=List[Ingredient])
+async def get_all_ingredients(page: int, page_size: int, current_user: UserInfo = Depends(msal_auth.scheme)):
+    ingredients_list = await ingredients.get_all_ingredients_of_user(page=page, page_size=page_size, user_id=current_user.user_id)
     return ingredients_list
 
 @router.put("/{ingredient_id}", response_model=Ingredient)
