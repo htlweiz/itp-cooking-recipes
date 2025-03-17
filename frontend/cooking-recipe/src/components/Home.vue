@@ -89,7 +89,7 @@ function goToRecipeDetail(id) {
 onMounted(async () => {
   console.log('Home component is mounted');
   try {
-    const recipeResponse = await recipeService.getRecipes();
+    const recipeResponse = await recipeService.getRecipes({page: 0, page_size: 1000});
     for (let recipe of recipeResponse.data) {
       const starResponse = await recipeService.getAverageStarsPerRecipe(recipe.id);
       recipe.rating = starResponse.data;

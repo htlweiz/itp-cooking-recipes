@@ -4,110 +4,116 @@
       <div class="text-center">
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900">Login</h2>
       </div>
-      <form @submit.prevent="handleSubmit" class="mt-8 space-y-6">
-        <div class="rounded-md shadow-sm -space-y-px">
-          <div>
-            <label for="email" class="sr-only">Email address</label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                <MailIcon class="h-5 w-5 text-gray-400" />
-              </div>
-              <input 
-                id="email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                required
-                v-model="email"
-                class="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 
-                text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500  sm:text-sm"
-                placeholder="Email address"
-              />
-            </div>
-          </div>
-          <div>
-            <label for="password" class="sr-only">Password</label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                <LockIcon class="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                :type="showPassword ? 'text' : 'password'"
-                id="password"
-                name="password"
-                autocomplete="current-password"
-                required
-                v-model="password"
-                class="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 
-                placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Password"
-              />
-              <div class="absolute inset-y-0 right-0 pr-3 flex items-center z-10">
-                <button
-                  type="button"
-                  @click="togglePassword"
-                  class="focus:outline-none"
-                >
-                  <EyeIcon v-if="!showPassword" class="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                  <EyeOffIcon v-else class="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium 
-            rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
-            focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{ isLoading ? 'Logging in...' : 'Log In' }}
-          </button>
-        </div>
-      </form>
       <p v-if="errorMessage" class="mt-2 text-center text-sm text-red-600">
         {{ errorMessage }}
       </p>
+      <button @click="loginWithMicrosoft" class="w-full flex items-center justify-center p-4 bg-indigo-600 text-white rounded-full shadow-lg">
+        Microsoft Login
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { MailIcon, LockIcon, EyeIcon, EyeOffIcon } from 'lucide-vue-next';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { login } from '../services/userService';
+import * as msal from '@azure/msal-browser';  // MSAL importieren
+import { login } from '../services/userService.js';  // Die Funktion zum Speichern von Token und E-Mail
 
 const router = useRouter();
 
-const email = ref('');
-const password = ref('');
-const showPassword = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref('');
-let isAuthenticated = ref(false);
 
-function togglePassword() {
-  showPassword.value = !showPassword.value;
+const msalConfig = {
+  auth: {
+    clientId: import.meta.env.VITE_CLIENT_ID,  // Deine Client-ID
+    authority: import.meta.env.VITE_AUTHORIZATION_URL,  // Deine Tenant-ID
+    redirectUri: import.meta.env.VITE_REDIRECT_URI,  // Deine Redirect-URI
+  },
+  cache: {
+    cacheLocation: "localStorage",  // Wählen, wo das Token gespeichert werden soll
+    storeAuthStateInCookie: false,  // Verhindert Auth-Fehler in IE
+  },
+};
+
+const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+// Funktion zum Überprüfen, ob der Benutzer bereits eingeloggt ist
+async function checkAccount() {
+  const accounts = msalInstance.getAllAccounts();
+  console.log('Accounts:', accounts);
+  if (accounts.length > 0) {
+    console.log('Benutzer bereits eingeloggt:', accounts[0]);
+    router.push('/');
+    return true;
+  }
+  return false;
 }
 
-function handleSubmit() {
-  isLoading.value = true;
-  errorMessage.value = '';
-  
-  setTimeout(() => {
-      console.log('Email:', email.value);
-      console.log('Password:', password.value);
-      if (email.value === 'test@example.com' && password.value === 'password') {
-          login('mock token', email.value);
-          router.push('/');
-      } else {
-          errorMessage.value = 'Invalid email or password';
-      }
-      isLoading.value = false;
-  }, 1500);
+// Prüft beim Laden der Seite, ob ein Redirect erfolgt ist
+onMounted(async () => {
+  await msalInstance.initialize();  // Initialisiere MSAL
+  const result = await msalInstance.handleRedirectPromise();  // Handle redirect promise nach Login
+  if (result) {
+    console.log('Login nach Redirect erfolgreich:', result);
+    msalInstance.setActiveAccount(result.account);  // Setze das aktive Konto
+    await handleLoginSuccess(result);  // Bearbeite den Login
+  }
+});
+
+async function loginWithMicrosoft() {
+  if (isLoading.value) {
+    return;
+  }
+
+  const alreadyLoggedIn = await checkAccount();
+  if (alreadyLoggedIn) {
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+
+    // Starte die Login-Popup-Anforderung
+    const loginResponse = await msalInstance.loginPopup({
+      scopes: [`${import.meta.env.VITE_SCOPE}`],  // Hier deine Scopes einfügen
+    });
+
+    // Nach erfolgreichem Login, handle den Login
+    await handleLoginSuccess(loginResponse);
+  } catch (error) {
+    console.error('Login fehlgeschlagen:', error);
+    errorMessage.value = 'Microsoft Login fehlgeschlagen';
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+// Verarbeitung des erfolgreichen Logins
+async function handleLoginSuccess(loginResponse) {
+  try {
+    const account = msalInstance.getActiveAccount();
+    if (account) {
+      console.log('Benutzer erfolgreich eingeloggt:', account);
+
+      // Abrufen des Access Tokens für den authentifizierten Benutzer
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        scopes: [`${import.meta.env.VITE_SCOPE}`],
+        account: account,
+      });
+
+      console.log('Access Token:', tokenResponse.accessToken);
+
+      // Speichern des Tokens und der E-Mail-Adresse im LocalStorage
+      login(tokenResponse.accessToken, account.username);  // Speichern des Tokens und der E-Mail
+
+      // Weiterleitung zur Startseite nach erfolgreichem Login
+      router.push('/');
+    }
+  } catch (error) {
+    console.error('Fehler beim Abrufen des Tokens:', error);
+    errorMessage.value = 'Fehler beim Abrufen des Tokens. Bitte versuche es erneut.';
+  }
 }
 </script>

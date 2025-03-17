@@ -54,3 +54,11 @@ Ziel:
 Erreicht:
 - Vue Projekt läuft auf https (vite-plugin-mkcert)
 - Recipe werden gefetcht und können gelöscht werden
+
+## 17.03.2025
+Ziel:
+- Login mit Mircosoft einbauen 
+- API Routen einbauen
+
+
+Erreicht:

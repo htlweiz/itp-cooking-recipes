@@ -1,10 +1,22 @@
 import axios from 'axios';
 import { isAuthenticated } from './userService';
 import { apiClient } from './apiClient';
-  
+
+const formatParams = (params) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+            value.forEach((val) => searchParams.append(key, val));
+        } else if (value !== null && value !== undefined) {
+            searchParams.append(key, value);
+        }
+    });
+    return searchParams.toString();
+};
+
 export default {
-    getRecipes() {
-        return apiClient.get('/recipes/');
+    getRecipes(params) {
+        return apiClient.get(`/recipes/?${formatParams(params)}`);
     },
     getRecipe(id) {
         return apiClient.get(`/recipes/${id}`);
@@ -18,8 +30,8 @@ export default {
     deleteRecipe(id) {
         return apiClient.delete(`/recipes/${id}`);
     },
-    getIngredients() {
-        return apiClient.get('/ingredients/');
+    getIngredients(params) {
+        return apiClient.get(`/ingredients/${formatParams(params)}`);
     },
     getIngredient(id) {
         return apiClient.get(`/ingredients/${id}`);
@@ -33,8 +45,8 @@ export default {
     deleteIngredient(id) {
         return apiClient.delete(`/ingredients/${id}`);
     },
-    getSteps() {
-        return apiClient.get('/steps/');
+    getSteps(params) {
+        return apiClient.get(`/steps/${formatParams(params)}`);
     },
     getStep(id) {
         return apiClient.get(`/steps/${id}`);
@@ -48,8 +60,8 @@ export default {
     deleteStep(id) {
         return apiClient.delete(`/steps/${id}`);
     },
-    getRecipeIngredients(recipeId) {
-        return apiClient.get(`/recipes/${recipeId}/ingredients`);
+    getRecipeIngredients(recipeId, params) {
+        return apiClient.get(`/recipes/${recipeId}/ingredients${formatParams(params)}`);
     },
     createRecipeIngredient(amount, unit, ingredientId, recipeId) {
         return apiClient.post(`ingredients_recipe`, amount, unit, ingredientId, recipeId);
@@ -57,8 +69,8 @@ export default {
     getRecipeSteps(recipeId) {
         return apiClient.get(`/recipes/${recipeId}/steps`);
     },
-    getStars() {
-        return apiClient.get('/stars/');
+    getStars(params) {
+        return apiClient.get(`/stars/${formatParams(params)}`);
     },
     getStar(id) {
         return apiClient.get(`/stars/${id}`);
