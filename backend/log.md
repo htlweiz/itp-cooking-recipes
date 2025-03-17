@@ -51,3 +51,12 @@
 - Pagination hinzugefügt
 - Fixed login problem in Microsoft Entra Admin Center | External Identities | Mandantenübergreifende Zugriffseinstellungen
 - Added filtering and ordering for recipes
+
+# 17.03.2025
+## Ziele:
+- Integration mit Frontend
+- Microsoft Auth Bug Fixes -> External Tenant
+
+## Erreicht
+- neuen external Azure Tenant erstellt
+- Integration mit Frontend fortgesetzt
