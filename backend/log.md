@@ -60,3 +60,12 @@
 ## Erreicht
 - neuen external Azure Tenant erstellt
 - Integration mit Frontend fortgesetzt
+
+# 31.03.2025
+## Ziele:
+- Integration mit Frontend
+- Testen starten
+
+## Erreicht
+- Front End Login fertiggestellt
+- Testen für Ingredients begonnen
