@@ -8,7 +8,8 @@
         {{ errorMessage }}
       </p>
       <button @click="loginWithMicrosoft" class="w-full flex items-center justify-center p-4 bg-indigo-600 text-white rounded-full shadow-lg">
-        Microsoft Login
+        <span v-if="isLoading">Loading...</span>
+        <span v-else>Microsoft Login</span>
       </button>
     </div>
   </div>
@@ -17,8 +18,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import * as msal from '@azure/msal-browser';  // MSAL importieren
-import { login } from '../services/userService.js';  // Die Funktion zum Speichern von Token und E-Mail
+import * as msal from '@azure/msal-browser';
+// import { login } from '../services/authService.js'; // Importiere die login-Funktion
 
 const router = useRouter();
 
@@ -27,93 +28,97 @@ const errorMessage = ref('');
 
 const msalConfig = {
   auth: {
-    clientId: import.meta.env.VITE_CLIENT_ID,  // Deine Client-ID
-    authority: import.meta.env.VITE_AUTHORIZATION_URL,  // Deine Tenant-ID
-    redirectUri: import.meta.env.VITE_REDIRECT_URI,  // Deine Redirect-URI
+    clientId: import.meta.env.VITE_CLIENT_ID,
+    authority: import.meta.env.VITE_AUTHORIZATION_URL,
+    redirectUri: import.meta.env.VITE_REDIRECT_URI,
   },
   cache: {
-    cacheLocation: "localStorage",  // Wählen, wo das Token gespeichert werden soll
-    storeAuthStateInCookie: false,  // Verhindert Auth-Fehler in IE
+    cacheLocation: 'localStorage',
+    storeAuthStateInCookie: false,
   },
 };
+console.log('MSAL Config:', msalConfig);
+const loginRequest = {
+    scopes: ['Files.Read'],
+  };
 
+  
 const msalInstance = new msal.PublicClientApplication(msalConfig);
 
-// Funktion zum Überprüfen, ob der Benutzer bereits eingeloggt ist
-async function checkAccount() {
-  const accounts = msalInstance.getAllAccounts();
-  console.log('Accounts:', accounts);
-  if (accounts.length > 0) {
-    console.log('Benutzer bereits eingeloggt:', accounts[0]);
-    router.push('/');
-    return true;
-  }
-  return false;
-}
-
-// Prüft beim Laden der Seite, ob ein Redirect erfolgt ist
 onMounted(async () => {
-  await msalInstance.initialize();  // Initialisiere MSAL
-  const result = await msalInstance.handleRedirectPromise();  // Handle redirect promise nach Login
-  if (result) {
-    console.log('Login nach Redirect erfolgreich:', result);
-    msalInstance.setActiveAccount(result.account);  // Setze das aktive Konto
-    await handleLoginSuccess(result);  // Bearbeite den Login
-  }
+  await msalInstance.initialize();
 });
 
 async function loginWithMicrosoft() {
-  if (isLoading.value) {
-    return;
-  }
-
-  const alreadyLoggedIn = await checkAccount();
-  if (alreadyLoggedIn) {
-    return;
-  }
+  isLoading.value = true;
+  errorMessage.value = '';
 
   try {
-    isLoading.value = true;
+    const response = await msalInstance.loginPopup(loginRequest);
 
-    // Starte die Login-Popup-Anforderung
-    const loginResponse = await msalInstance.loginPopup({
-      scopes: [`${import.meta.env.VITE_SCOPE}`],  // Hier deine Scopes einfügen
+    console.log('Login erfolgreich', response);
+    const account = response.account;
+
+    // Access Token für API abrufen
+    const tokenResponse = await msalInstance.acquireTokenSilent({
+      scopes: ['Files.Read'],
+      account: account
     });
 
-    // Nach erfolgreichem Login, handle den Login
-    await handleLoginSuccess(loginResponse);
+    const accessToken = tokenResponse.accessToken;
+    
+    console.log('Decoded Access Token:', JSON.parse(atob(accessToken.split('.')[1])));
+    console.log('API Token:', accessToken);
+
+    // Token speichern
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('email', account.username);
+
+    router.push('/'); // Weiterleitung zur Startseite
   } catch (error) {
     console.error('Login fehlgeschlagen:', error);
-    errorMessage.value = 'Microsoft Login fehlgeschlagen';
+    errorMessage.value = 'Login fehlgeschlagen. Bitte versuche es erneut.';
   } finally {
     isLoading.value = false;
   }
 }
 
-// Verarbeitung des erfolgreichen Logins
-async function handleLoginSuccess(loginResponse) {
-  try {
-    const account = msalInstance.getActiveAccount();
-    if (account) {
-      console.log('Benutzer erfolgreich eingeloggt:', account);
 
-      // Abrufen des Access Tokens für den authentifizierten Benutzer
-      const tokenResponse = await msalInstance.acquireTokenSilent({
-        scopes: [`${import.meta.env.VITE_SCOPE}`],
-        account: account,
-      });
 
-      console.log('Access Token:', tokenResponse.accessToken);
 
-      // Speichern des Tokens und der E-Mail-Adresse im LocalStorage
-      login(tokenResponse.accessToken, account.username);  // Speichern des Tokens und der E-Mail
+// function getAccount(msalInstance) {
+//     const accounts = msalInstance.getAllAccounts();
+//     return accounts.length > 0 ? accounts[0] : null;
+//   }
 
-      // Weiterleitung zur Startseite nach erfolgreichem Login
-      router.push('/');
-    }
-  } catch (error) {
-    console.error('Fehler beim Abrufen des Tokens:', error);
-    errorMessage.value = 'Fehler beim Abrufen des Tokens. Bitte versuche es erneut.';
-  }
+// function getProfile(msalInstance) {
+// const account = getAccount(msalInstance);
+// if (account) {
+//     msalInstance.acquireTokenSilent({
+//     ...loginRequest,
+//     account: account
+//     }).then(response => {
+//     console.log('Token erhalten:', response.accessToken);
+//     const account = response.account;
+//         const token = response.accessToken;
+//         const email = account.username;
+//         console.log('Token:', token);
+//         console.log('Email:', email);
+//         localStorage.setItem('accessToken', token);
+//         localStorage.setItem('email', email);
+
+//     }).catch(error => {
+//     console.error('Fehler bei der Token-Anfrage:', error);
+//     });
+// }
+// }
+
+
+function logout(msalInstance) {
+  msalInstance.logout();
+  
+  localStorage.removeItem('token');
+  localStorage.removeItem('email');
 }
+
 </script>

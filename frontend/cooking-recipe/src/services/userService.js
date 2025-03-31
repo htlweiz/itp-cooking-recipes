@@ -1,6 +1,6 @@
 
 export function isAuthenticated() {
-  return !!localStorage.getItem('token');
+  return !!localStorage.getItem('accessToken');
 }
 
 export function login(token, email) {
@@ -9,7 +9,7 @@ export function login(token, email) {
 }
 
 export function logout() {
-  localStorage.removeItem('token');
+  localStorage.removeItem('accessToken');
   localStorage.removeItem('email');
 }
 
