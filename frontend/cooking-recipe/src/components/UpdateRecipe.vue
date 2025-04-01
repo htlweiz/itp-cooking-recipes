@@ -184,7 +184,7 @@ function moveStep(index, direction) {
   }
 }
 
-function updateRecipe() {
+async function updateRecipe() {
   const updatedRecipe = {
     ...recipe.value,
     updated_at: new Date().toISOString(),
@@ -197,7 +197,31 @@ function updateRecipe() {
       }))
   };
   try {
-    recipeService.updateRecipe(recipeId, updatedRecipe);
+    const Recipe = {
+        title: updatedRecipe.title,
+        description: updatedRecipe.description,
+     };
+    await recipeService.updateRecipe(recipeId, Recipe);
+
+    for (const ingredient of updatedRecipe.ingredients) {
+        const ingredientResponse = await recipeService.createIngredient({
+            name: ingredient.name,
+            calories: ingredient.calories || 0,
+            protein: ingredient.protein || 0,
+            carbs: ingredient.carbs || 0,
+            fat: ingredient.fat || 0
+        });
+        console.log('Created ingredient:', ingredientResponse.data.id);
+        await recipeService.createRecipeIngredient({
+            related_recipe_id: recipeId,
+            related_ingredient_id: ingredientResponse.data.id,
+            amount: ingredient.amount,
+            unit: ingredient.unit
+        });
+    }
+
+    
+
   } catch (error) {
     console.error('Failed to update recipe:', error);
   }

@@ -63,8 +63,8 @@ export default {
     getRecipeIngredients(recipeId, params) {
         return apiClient.get(`/recipes/${recipeId}/ingredients${formatParams(params)}`);
     },
-    createRecipeIngredient(amount, unit, ingredientId, recipeId) {
-        return apiClient.post(`ingredients_recipe`, amount, unit, ingredientId, recipeId);
+    createRecipeIngredient(recipeIngredient) {
+        return apiClient.post('/ingredients_recipes/', recipeIngredient);
     },
     getRecipeSteps(recipeId) {
         return apiClient.get(`/recipes/${recipeId}/steps`);
