@@ -31,7 +31,7 @@ export default {
         return apiClient.delete(`/recipes/${id}`);
     },
     getIngredients(params) {
-        return apiClient.get(`/ingredients/${formatParams(params)}`);
+        return apiClient.get(`/ingredients/?${formatParams(params)}`);
     },
     getIngredient(id) {
         return apiClient.get(`/ingredients/${id}`);

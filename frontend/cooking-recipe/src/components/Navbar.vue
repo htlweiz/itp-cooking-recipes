@@ -26,6 +26,10 @@
               </button>
             </div>
           </div>
+          <div class="hidden sm:ml-6 sm:flex sm:items-center">
+            <a href="/" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Rezepte</a>
+            <a href="/ingredients" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Zutaten</a>
+          </div>
           <div v-if="!isUserAuthenticated" class="ml-6 flex items-center hidden sm:block">
             <a
               href="/login"
@@ -77,7 +81,8 @@
     </div>
     <div v-if="isMobileMenuOpen" class="sm:hidden">
       <div class="pt-2 pb-3 space-y-1">
-        <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Rezepte</a>
+        <a href="/" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Rezepte</a>
+        <a href="/ingredients" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Zutaten</a>
         <a
           href="/login"
           class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"

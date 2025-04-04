@@ -32,10 +32,18 @@
                     <h3 class="text-lg font-medium text-gray-900">Zutaten</h3>
                     <div v-for="(ingredient, index) in recipe.ingredients" :key="index" class="flex flex-col sm:flex-row gap-4">
                         <div class="flex-1">
-                            <input type="text" v-model="ingredient.name" placeholder="Zutat"
+                            <select 
+                                v-model="ingredient.id" 
                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500"
-                            />
+                                required
+                            >
+                                <option value="" disabled selected>Zutat auswählen</option>
+                                <option v-for="ingredient in availableIngredients" :key="ingredient.id" :value="ingredient.id">
+                                    {{ ingredient.name }}
+                                </option>
+                            </select>
                         </div>
+                        
                         <div class="w-full sm:w-24">
                             <input type="number" v-model="ingredient.amount" placeholder="Menge" min="0"
                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500"
@@ -109,15 +117,33 @@
 </template>
   
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, ArrowLeftIcon } from 'lucide-vue-next'
 import recipeService  from '../services/recipeService.js';
+
+const router = useRouter();
 
 const recipe = ref({
     title: '',
     description: '',
-    ingredients: [{ name: '', amount: '', unit: 'g', calories: 0, protein: 0, carbs: 0, fat: 0 }],
+    ingredients: [{ id: null, amount: 0, unit: 'g' }],
     steps: [{ instruction: '' }]
+})
+
+const availableIngredients = ref([])
+
+onMounted(async () => {
+    try {
+        const queryParams = {
+            page: 0,
+            page_size: 1000,
+        }
+        const response = await recipeService.getIngredients(queryParams)
+        availableIngredients.value = response.data
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Zutaten:', error)
+    }
 })
 
 function addIngredient() {
@@ -154,7 +180,6 @@ async function createRecipe() {
   const newRecipe = {
     ...recipe.value,
     created_at: new Date().toISOString(),
-    ingredients: recipe.value.ingredients.filter(ing => ing.name.trim() !== ''),
     steps: recipe.value.steps
       .filter(step => step.instruction.trim() !== '')
       .map((step, index) => ({
@@ -162,25 +187,29 @@ async function createRecipe() {
         step_number: index + 1
       }))
   }
+
   const createdRecipe = await recipeService.createRecipe(newRecipe)
-  console.log('Neues Rezept:', createdRecipe)
+
   for (const ingredient of newRecipe.ingredients) {
-    const newIngredient = {
-        "name": ingredient.name,
-        "calories": 0,
-        "fat": 0,
-        "carbs": 0,
-        "protein": 0
-    }
-    const created = await recipeService.createIngredient(newIngredient)
-    await recipeService.createRecipeIngredient(ingredient.amount, ingredient.unit, createdRecipe.data.id, created.data.id)
+    await recipeService.createRecipeIngredient({
+        related_ingredient_id: ingredient.id,
+        amount: ingredient.amount,
+        unit: ingredient.unit,
+        related_recipe_id: createdRecipe.data.id
+    })
   }
 
   for (const step of newRecipe.steps) {
-    const created = await recipeService.createStep(step.step_number, step.instruction, 'R', createdRecipe.data.id)
+    await recipeService.createStep({
+        instruction: step.instruction,
+        step_number: step.step_number,
+        related_recipe_id: createdRecipe.data.id,
+        title: 'Titel',
+    })
   }
-  
+
   console.log('Neues Rezept:', newRecipe)
+  router.push('/')
 }
 
 </script>
