@@ -38,12 +38,11 @@
                                 required
                             >
                                 <option value="" disabled selected>Zutat auswählen</option>
-                                <option v-for="ingredient in availableIngredients" :key="ingredient.id" :value="ingredient.id">
-                                    {{ ingredient.name }}
+                                <option v-for="availableIngredient in getFilteredIngredients(index)" :key="availableIngredient.id" :value="availableIngredient.id">
+                                {{ availableIngredient.name }}
                                 </option>
                             </select>
                         </div>
-                        
                         <div class="w-full sm:w-24">
                             <input type="number" v-model="ingredient.amount" placeholder="Menge" min="0"
                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500"
@@ -155,6 +154,16 @@ function removeIngredient(index) {
   if (recipe.value.ingredients.length === 0) {
     addIngredient()
   }
+}
+
+function getFilteredIngredients(currentIndex) {
+  const selectedIngredientIds = recipe.value.ingredients
+    .filter((_, index) => index !== currentIndex)
+    .map(ingredient => ingredient.id);
+
+  return availableIngredients.value.filter(
+    ingredient => !selectedIngredientIds.includes(ingredient.id)
+  );
 }
 
 function addStep() {

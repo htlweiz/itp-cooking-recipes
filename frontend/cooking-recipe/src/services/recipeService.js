@@ -30,6 +30,9 @@ export default {
     deleteRecipe(id) {
         return apiClient.delete(`/recipes/${id}`);
     },
+    getRecipePic(recipeId) {
+        return apiClient.get(`/recipes/${recipeId}/pic/`);
+    },
     getIngredients(params) {
         return apiClient.get(`/ingredients/?${formatParams(params)}`);
     },
@@ -60,11 +63,17 @@ export default {
     deleteStep(id) {
         return apiClient.delete(`/steps/${id}`);
     },
-    getRecipeIngredients(recipeId, params) {
-        return apiClient.get(`/recipes/${recipeId}/ingredients${formatParams(params)}`);
+    getRecipeIngredients(params = {page: 0, page_size: 1000}) {
+        return apiClient.get(`/ingredients_recipes/?${formatParams(params)}`);
     },
     createRecipeIngredient(recipeIngredient) {
         return apiClient.post('/ingredients_recipes/', recipeIngredient);
+    },
+    updateRecipeIngredient(id, recipeIngredient) {
+        return apiClient.put(`/ingredients_recipes/${id}`, recipeIngredient);
+    },
+    deleteRecipeIngredient(id) {
+        return apiClient.delete(`/ingredients_recipes/${id}`);
     },
     getRecipeSteps(recipeId) {
         return apiClient.get(`/recipes/${recipeId}/steps`);

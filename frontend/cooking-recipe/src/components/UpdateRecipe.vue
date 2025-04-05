@@ -32,9 +32,12 @@
                     <h3 class="text-lg font-medium text-gray-900">Zutaten</h3>
                     <div v-for="(ingredient, index) in recipe.ingredients" :key="index" class="flex flex-col sm:flex-row gap-4">
                         <div class="flex-1">
-                            <input type="text" v-model="ingredient.name" placeholder="Zutat"
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500"
-                            />
+                            <select v-model="ingredient.id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500" required>
+                                <option value="" disabled>Zutat auswählen</option>
+                                <option v-for="availableIngredient in getFilteredIngredients(index)" :value="availableIngredient.id" :key="availableIngredient.id" >
+                                    {{ availableIngredient.name }}
+                                </option>
+                            </select>
                         </div>
                         <div class="w-full sm:w-24">
                             <input type="number" v-model="ingredient.amount" placeholder="Menge" min="0"
@@ -121,33 +124,51 @@ const recipeId = route.params.id;
 const recipe = ref({
     title: '',
     description: '',
-    ingredients: [{ name: '', amount: '', unit: 'g', calories: 0, protein: 0, carbs: 0, fat: 0 }],
+    ingredients: [{ id: null, name:'', amount: 0, unit: 'g' }],
     steps: [{ instruction: '' }]
 });
 
-onMounted(async () => {
-    console.log('Fetching recipe data for ID:', recipeId);
+const originalSteps = ref([]);
+const originalIngredients = ref([]);
 
-    recipe.value = {
-        title: 'Spaghetti Carbonara',
-        description: 'Ein klassisches italienisches Gericht mit Speck, Eiern und Parmesan.',
-        ingredients: [
-            { name: 'Spaghetti', amount: '200', unit: 'g' },
-            { name: 'Speck', amount: '100', unit: 'g' },
-            { name: 'Eier', amount: '2', unit: 'Stück' },
-            { name: 'Parmesan', amount: '50', unit: 'g' }
-        ],
-        steps: [
-            { instruction: 'Spaghetti in Salzwasser kochen.' },
-            { instruction: 'Speck in einer Pfanne anbraten.' },
-            { instruction: 'Eier und Parmesan vermischen.' },
-            { instruction: 'Spaghetti abgießen und mit Speck und Eiermischung vermengen.' }
-        ]
-    };
+const availableIngredients = ref([])
+
+const ingredientRecipes = ref([
+    {
+        id: Number,
+        amount: Number,
+        unit: '',
+        related_recipe_id: Number,
+        related_ingredient_id: Number
+    }
+]);
+
+onMounted(async () => {
     try {
+        const queryParams = {
+            page: 0,
+            page_size: 1000,
+        }
+        const ingredientResponse = await recipeService.getIngredients(queryParams)
+        availableIngredients.value = ingredientResponse.data
+
         const response = await recipeService.getRecipe(recipeId);
-        console.log('Fetched recipe:', response.data);
         recipe.value = response.data;
+        const allRelations = (await recipeService.getRecipeIngredients()).data;
+        ingredientRecipes.value = allRelations.filter(ir => ir.related_recipe_id === Number(recipeId));
+
+        recipe.value.ingredients = recipe.value.ingredients.map(ingredient => {
+        const match = availableIngredients.value.find(item => item.name === ingredient.name);
+        const relation = ingredientRecipes.value.find(ir => ir.related_ingredient_id === match?.id);
+
+        return {
+            ...ingredient,
+            id: match ? match.id : null,
+            relationId: relation ? relation.id : null 
+        };
+        });
+        originalSteps.value = [...recipe.value.steps];
+        originalIngredients.value = [...recipe.value.ingredients];
     } catch (error) {
         console.error('Failed to fetch recipe:', error);
     }
@@ -155,7 +176,7 @@ onMounted(async () => {
 });
 
 function addIngredient() {
-  recipe.value.ingredients.push({ name: '', amount: '', unit: 'g' });
+  recipe.value.ingredients.push({ id: null, name: '', amount: '', unit: 'g' });
 }
 
 function removeIngredient(index) {
@@ -163,6 +184,16 @@ function removeIngredient(index) {
   if (recipe.value.ingredients.length === 0) {
     addIngredient();
   }
+}
+
+function getFilteredIngredients(currentIndex) {
+  const selectedIngredientIds = recipe.value.ingredients
+    .filter((_, index) => index !== currentIndex)
+    .map(ingredient => ingredient.id);
+
+  return availableIngredients.value.filter(
+    ingredient => !selectedIngredientIds.includes(ingredient.id)
+  );
 }
 
 function addStep() {
@@ -185,48 +216,75 @@ function moveStep(index, direction) {
 }
 
 async function updateRecipe() {
-  const updatedRecipe = {
-    ...recipe.value,
-    updated_at: new Date().toISOString(),
-    ingredients: recipe.value.ingredients.filter(ing => ing.name.trim() !== ''),
-    steps: recipe.value.steps
-      .filter(step => step.instruction.trim() !== '')
-      .map((step, index) => ({
-        ...step,
-        step_number: index + 1
-      }))
-  };
-  try {
-    const Recipe = {
-        title: updatedRecipe.title,
-        description: updatedRecipe.description,
-     };
-    await recipeService.updateRecipe(recipeId, Recipe);
+    const updatedRecipe = {
+        ...recipe.value,
+        updated_at: new Date().toISOString(),
+        steps: recipe.value.steps
+        .filter(step => step.instruction.trim() !== '')
+        .map((step, index) => ({
+            ...step,
+            step_number: index + 1
+        }))
+    };
 
-    for (const ingredient of updatedRecipe.ingredients) {
-        const ingredientResponse = await recipeService.createIngredient({
-            name: ingredient.name,
-            calories: ingredient.calories || 0,
-            protein: ingredient.protein || 0,
-            carbs: ingredient.carbs || 0,
-            fat: ingredient.fat || 0
-        });
-        console.log('Created ingredient:', ingredientResponse.data.id);
-        await recipeService.createRecipeIngredient({
-            related_recipe_id: recipeId,
-            related_ingredient_id: ingredientResponse.data.id,
-            amount: ingredient.amount,
-            unit: ingredient.unit
-        });
+    const validIngredients = updatedRecipe.ingredients.filter(ingredient => ingredient.id);
+    const updatedIngredientIds = validIngredients.map(ing => ing.id);
+
+    const originalStepIds = originalSteps.value.map(step => step.id).filter(Boolean);
+    const updatedStepIds = updatedRecipe.steps.map(step => step.id).filter(Boolean);
+    const stepsToDelete = originalStepIds.filter(id => !updatedStepIds.includes(id));
+
+    await recipeService.updateRecipe(recipeId, {
+        title: updatedRecipe.title,
+        description: updatedRecipe.description
+    });
+
+    for (const ingredient of validIngredients) {
+        if (!ingredient.relationId) {
+            await recipeService.createRecipeIngredient({
+                amount: ingredient.amount,
+                unit: ingredient.unit,
+                related_recipe_id: recipeId,
+                related_ingredient_id: ingredient.id
+            });
+        } else {
+            await recipeService.updateRecipeIngredient(ingredient.relationId, {
+                amount: ingredient.amount,
+                unit: ingredient.unit
+            });
+        }
     }
 
-    
+    const relationsToDelete = ingredientRecipes.value.filter(
+        ir => !updatedIngredientIds.includes(ir.related_ingredient_id)
+    );
 
-  } catch (error) {
-    console.error('Failed to update recipe:', error);
-  }
+    for (const rel of relationsToDelete) {
+        await recipeService.deleteRecipeIngredient(rel.id);
+    }
 
-  console.log('Aktualisiertes Rezept:', updatedRecipe);
-  router.push(`/recipe/${recipeId}`);
+    for (const stepId of stepsToDelete) {
+        await recipeService.deleteStep(stepId);
+    }
+
+    for (const step of updatedRecipe.steps) {
+        if (!step.id) {
+        const newStep = await recipeService.createStep({
+            instruction: step.instruction,
+            step_number: step.step_number,
+            related_recipe_id: recipeId,
+            title: 'Titel',
+        });
+        step.id = newStep.data.id;
+        } else {
+        await recipeService.updateStep(step.id, {
+            instruction: step.instruction,
+            step_number: step.step_number
+        });
+        }
+    }
+
+    router.push(`/recipe/${recipeId}`);
 }
+
 </script>

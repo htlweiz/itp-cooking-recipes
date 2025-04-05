@@ -6,5 +6,5 @@
 import { defineProps } from 'vue';
 import UpdateRecipe from '../components/UpdateRecipe.vue';
 
-const props = defineProps({ id: Number });
+const props = defineProps({ id: null });
 </script>
