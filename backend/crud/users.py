@@ -5,7 +5,7 @@ async def create_user(user_id: str, username: str, email: str):
     user = await Users.create(id=user_id, username=username, email=email)
     return user
 
-async def get_user(user_id: int):
+async def get_user(user_id: str):
     try:
         user = await Users.get(id=user_id)
         return user

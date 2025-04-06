@@ -15,7 +15,7 @@ async def get_all_users(page: int, page_size: int, current_user: UserInfo = Depe
     return users_list
 
 @router.get("/{user_id}", response_model=User)
-async def get_user(user_id: int, current_user: UserInfo = Depends(msal_auth.scheme)):
+async def get_user(user_id: str, current_user: UserInfo = Depends(msal_auth.scheme)):
     user = await users.get_user(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
