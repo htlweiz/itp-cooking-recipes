@@ -121,7 +121,11 @@ onMounted(async () => {
   try {
     const recipeResponse = await recipeService.getRecipe(recipeId);
     recipe.value = recipeResponse.data;
-    recipe.value.created_by = await (userService.getUser(recipe.value.related_user_id)).data.username
+    
+    const userResponse = await (userService.getUser(recipe.value.related_user_id))
+    recipe.value.created_by = userResponse.data.username;
+    console.log(recipe.value);
+
     const imageResponse = await recipeService.getRecipePic(recipeResponse.data.id);
     if (imageResponse.data.type === 'image/jpeg' || imageResponse.data.type === 'image/png' ) {
       const blob = new Blob([imageResponse.data], { type: 'image/png' })

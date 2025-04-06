@@ -2,7 +2,7 @@
     <div class="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-2xl w-full space-y-8 bg-white p-10 rounded-xl shadow-md">
         <div class="flex justify-between items-center">
-          <router-link to="/" class="text-indigo-600 hover:text-indigo-800 focus:outline-indigo-500">
+          <router-link to="/ingredients" class="text-indigo-600 hover:text-indigo-800 focus:outline-indigo-500">
             <ArrowLeftIcon color="black" class="h-8 w-8" />
           </router-link>
           <div>
