@@ -145,11 +145,7 @@ const ingredientRecipes = ref([
 
 onMounted(async () => {
     try {
-        const queryParams = {
-            page: 0,
-            page_size: 1000,
-        }
-        const ingredientResponse = await recipeService.getIngredients(queryParams)
+        const ingredientResponse = await recipeService.getIngredients()
         availableIngredients.value = ingredientResponse.data
 
         const response = await recipeService.getRecipe(recipeId);

@@ -15,7 +15,7 @@ const formatParams = (params) => {
 };
 
 export default {
-    getRecipes(params) {
+    getRecipes(params = {page: 0, page_size: 100000}) {
         return apiClient.get(`/recipes/?${formatParams(params)}`);
     },
     getRecipe(id) {
@@ -31,9 +31,18 @@ export default {
         return apiClient.delete(`/recipes/${id}`);
     },
     getRecipePic(recipeId) {
-        return apiClient.get(`/recipes/${recipeId}/pic/`);
+        return apiClient.get(`/recipes/${recipeId}/pic/`, {
+            responseType: 'blob',
+        });
     },
-    getIngredients(params) {
+    uploadRecipePic(recipeId, formData) {
+        return apiClient.post(`/recipes/${recipeId}/upload_pic/`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      },
+    getIngredients(params = {page: 0, page_size: 100000}) {
         return apiClient.get(`/ingredients/?${formatParams(params)}`);
     },
     getIngredient(id) {
@@ -63,7 +72,7 @@ export default {
     deleteStep(id) {
         return apiClient.delete(`/steps/${id}`);
     },
-    getRecipeIngredients(params = {page: 0, page_size: 1000}) {
+    getRecipeIngredients(params = {page: 0, page_size: 100000}) {
         return apiClient.get(`/ingredients_recipes/?${formatParams(params)}`);
     },
     createRecipeIngredient(recipeIngredient) {
@@ -78,8 +87,8 @@ export default {
     getRecipeSteps(recipeId) {
         return apiClient.get(`/recipes/${recipeId}/steps`);
     },
-    getStars(params) {
-        return apiClient.get(`/stars/${formatParams(params)}`);
+    getStars(params = {page: 0, page_size: 100000}) {
+        return apiClient.get(`/stars/?${formatParams(params)}`);
     },
     getStar(id) {
         return apiClient.get(`/stars/${id}`);

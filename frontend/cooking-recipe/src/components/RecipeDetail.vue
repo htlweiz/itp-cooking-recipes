@@ -8,13 +8,37 @@
         
         <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
             <div class="px-4 py-5 sm:p-6">
-                <img :src="recipe.image" :alt="recipe.title" class="w-full h-64 object-cover rounded-lg shadow-md mb-6">
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">{{ recipe.title }}</h2>
-                <p class="text-gray-600 mb-4">{{ recipe.description }}</p>
+                <div v-if="recipe.image">
+                  <img :src="recipe.image" :alt="recipe.title" class="w-full h-64 object-cover rounded-lg shadow-md mb-6">
+                </div>
+                <div v-else class="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg">
+                  <p class="text-gray-500 mb-4">Kein Bild vorhanden</p>
+                  <input type="file" @change="uploadImage" accept="image/*" class="hidden" ref="fileInput">
+                  <button
+                    @click="triggerFileInput"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md"
+                  >
+                    Bild hochladen
+                  </button>
+                </div>
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-2 break-words">{{ recipe.title }}</h2>
+                <p class="text-gray-600 mb-4 break-words">{{ recipe.description }}</p>
                 <div class="flex items-center mb-4">
-                    <StarIcon v-for="i in Math.floor(recipe.average_stars)" :key="i" class="h-5 w-5 text-yellow-400" />
-                    <StarIcon v-for="i in 5 - Math.floor(recipe.average_stars)" :key="i + 5" class="h-5 w-5 text-gray-300" />
-                    <span class="ml-2 text-gray-600">({{ recipe.average_stars }})</span>
+                  <button
+                    v-for="star in 5"
+                    :key="star"
+                    @click="giveStar(star)"
+                    class="focus:outline-none"
+                  >
+                    <StarIcon
+                      :class="{
+                        'text-yellow-400': star <= Math.floor(recipe.average_stars),
+                        'text-gray-300': star > Math.floor(recipe.average_stars),
+                      }"
+                      class="h-5 w-5"
+                    />
+                  </button>
+                  <span class="ml-2 text-gray-600">({{ recipe.average_stars }})</span>
                 </div>
                 <p class="text-sm text-gray-500 mb-6">Erstellt bei {{ recipe.created_by }}</p>
 
@@ -64,8 +88,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowLeftIcon, Binary, StarIcon } from 'lucide-vue-next';
+import { ArrowLeftIcon, StarIcon } from 'lucide-vue-next';
 import recipeService  from '../services/recipeService.js';
+import userService from '../services/userService.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -81,29 +106,81 @@ const recipe = ref({
   steps: [
     { instruction: '' }
   ],
-  created_by: 'Chef Luigi',
   average_stars: null,
   related_user_id: null,
+  created_by: null,
   image: null
 });
 
 const isCreator = ref(false);
 
+const fileInput = ref(null);
+
 onMounted(async () => {
   isCreator.value = true;
   try {
     const recipeResponse = await recipeService.getRecipe(recipeId);
-    // const starResponse = await recipeService.getAverageStarsPerRecipe(recipeResponse.data.id);
-    // recipeResponse.data.rating = starResponse.data;
     recipe.value = recipeResponse.data;
+    recipe.value.created_by = await (userService.getUser(recipe.value.related_user_id)).data.username
     const imageResponse = await recipeService.getRecipePic(recipeResponse.data.id);
-    console.log('Fetched image:', imageResponse.data);
-    recipe.value.image = imageResponse.data;
-    console.log('Fetched recipes:', recipe); 
+    if (imageResponse.data.type === 'image/jpeg' || imageResponse.data.type === 'image/png' ) {
+      const blob = new Blob([imageResponse.data], { type: 'image/png' })
+      recipe.value.image = URL.createObjectURL(blob);
+    } 
   } catch (error) {
     console.error("Error fetching applications:", error);
   }
 });
+
+
+function triggerFileInput() {
+  fileInput.value.click();
+}
+
+async function uploadImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file); 
+
+    await recipeService.uploadRecipePic(recipeId, formData);
+
+    const imageResponse = await recipeService.getRecipePic(recipeId);
+    const blob = new Blob([imageResponse.data], { type: file.type });
+    recipe.value.image = URL.createObjectURL(blob)
+
+  } catch (error) {
+    console.error('Fehler beim Hochladen des Bildes:', error);
+  }
+}
+
+async function giveStar(star) {
+  try {
+    const starResponse = await recipeService.getStars();
+    const starToUpdate = starResponse.data.find(
+      (s) => s.related_recipe_id === recipe.value.id && s.related_user_id === recipe.value.related_user_id
+    );
+
+    if (starToUpdate) {
+      await recipeService.updateStar(starToUpdate.id, {
+        rating: star,
+      });
+    } else {
+      await recipeService.createStar({
+        rating: star,
+        related_recipe_id: recipe.value.id,
+      });
+    }
+
+    const updatedRecipe = await recipeService.getRecipe(recipeId);
+    recipe.value.average_stars = updatedRecipe.data.average_stars;
+
+  } catch (error) {
+    console.error('Fehler beim Aktualisieren der Bewertung:', error);
+  }
+}
 
 function getNutritionalInfo() {
   const totalCalories = recipe.value.ingredients.reduce((sum, ing) => sum + (ing.calories * ing.amount ), 0);
@@ -137,3 +214,11 @@ function deleteRecipe() {
 }
 
 </script>
+
+<style scoped>
+.break-words {
+  word-wrap: break-word;
+  word-break: break-word; 
+  white-space: normal;
+}
+</style>

@@ -19,7 +19,6 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import * as msal from '@azure/msal-browser';
-// import { login } from '../services/authService.js'; // Importiere die login-Funktion
 
 const router = useRouter();
 
@@ -81,44 +80,6 @@ async function loginWithMicrosoft() {
   } finally {
     isLoading.value = false;
   }
-}
-
-
-
-
-// function getAccount(msalInstance) {
-//     const accounts = msalInstance.getAllAccounts();
-//     return accounts.length > 0 ? accounts[0] : null;
-//   }
-
-// function getProfile(msalInstance) {
-// const account = getAccount(msalInstance);
-// if (account) {
-//     msalInstance.acquireTokenSilent({
-//     ...loginRequest,
-//     account: account
-//     }).then(response => {
-//     console.log('Token erhalten:', response.accessToken);
-//     const account = response.account;
-//         const token = response.accessToken;
-//         const email = account.username;
-//         console.log('Token:', token);
-//         console.log('Email:', email);
-//         localStorage.setItem('accessToken', token);
-//         localStorage.setItem('email', email);
-
-//     }).catch(error => {
-//     console.error('Fehler bei der Token-Anfrage:', error);
-//     });
-// }
-// }
-
-
-function logout(msalInstance) {
-  msalInstance.logout();
-  
-  localStorage.removeItem('token');
-  localStorage.removeItem('email');
 }
 
 </script>

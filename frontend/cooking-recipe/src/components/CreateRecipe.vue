@@ -134,11 +134,7 @@ const availableIngredients = ref([])
 
 onMounted(async () => {
     try {
-        const queryParams = {
-            page: 0,
-            page_size: 1000,
-        }
-        const response = await recipeService.getIngredients(queryParams)
+        const response = await recipeService.getIngredients()
         availableIngredients.value = response.data
     } catch (error) {
         console.error('Fehler beim Abrufen der Zutaten:', error)
@@ -217,7 +213,6 @@ async function createRecipe() {
     })
   }
 
-  console.log('Neues Rezept:', newRecipe)
   router.push('/')
 }
 

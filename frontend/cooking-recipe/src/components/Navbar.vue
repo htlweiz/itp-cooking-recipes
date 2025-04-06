@@ -95,14 +95,18 @@
 </template>
   
 <script setup>
-import { ref } from 'vue';
+import { ref} from 'vue';
+import { useRouter } from 'vue-router';
 import { UtensilsCrossedIcon, SearchIcon, UserIcon, MenuIcon, XIcon } from 'lucide-vue-next';
 import { isAuthenticated, logout } from '../services/userService';
+import { searchQuery } from '../services/searchState';
 
-const searchQuery = ref('');
+
 const isMobileMenuOpen = ref(false);
 const isSearchBarOpen = ref(false);
 let isUserAuthenticated = ref(isAuthenticated());
+
+const router = useRouter();
 
 function performSearch() {
   console.log('Suche nach:', searchQuery.value);
@@ -120,7 +124,7 @@ function toggleSearchBar() {
 function handleLogout() {
   logout();
   isUserAuthenticated.value = false;
-  window.location.href = '/login';
+  router.push('/login');
 }
 
 </script>
