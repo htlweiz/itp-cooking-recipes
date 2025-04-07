@@ -20,11 +20,19 @@ async def get_current_user(current_user: UserInfo = Depends(msal_auth.scheme)):
         raise HTTPException(status_code=400, detail="Invalid token encoding")
 
 
-class Security:
+"""class Security:
     def auth(current_user: UserInfo = Depends(get_current_user)):
         print(f"Preferred Username: {current_user.preferred_username}, Display Name: {current_user.display_name}, Id: {current_user.user_id}")
         print("\n\nHello")
-        return current_user
+        return current_user"""
+
+class Security:
+    def auth():
+        return UserInfo(
+            preferred_username="test_user",
+            display_name="Test User",
+            user_id="test_user_id"
+        )
 
 @router.post("/", response_model=Ingredient)
 async def create_ingredient(ingredient_data: IngredientCreate, current_user: UserInfo = Depends(Security.auth)):
