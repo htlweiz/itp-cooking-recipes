@@ -69,3 +69,14 @@ Ziel:
 
 Erreicht:
 - Login mit Mircosoft einbauen 
+
+## 5.04.2025
+Ziel:
+- Routen vom Backend integrieren  
+- Zutaten Übersicht 
+- Suchfunktion
+
+Erreicht:
+- Routen vom Backend integrieren  
+- Zutaten Übersicht 
+- Suchfunktion
