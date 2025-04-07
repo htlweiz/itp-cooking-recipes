@@ -69,3 +69,10 @@
 ## Erreicht
 - Front End Login fertiggestellt
 - Testen für Ingredients begonnen
+
+# 07.04.2025
+## Ziele:
+- Tests
+
+## Erreicht
+- Tests für Ingredients laufen
