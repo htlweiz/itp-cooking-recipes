@@ -36,7 +36,7 @@ const msalConfig = {
     storeAuthStateInCookie: false,
   },
 };
-console.log('MSAL Config:', msalConfig);
+
 const loginRequest = {
     scopes: ['Files.Read'],
   };
@@ -55,7 +55,6 @@ async function loginWithMicrosoft() {
   try {
     const response = await msalInstance.loginPopup(loginRequest);
 
-    console.log('Login erfolgreich', response);
     const account = response.account;
 
     // Access Token für API abrufen
@@ -64,11 +63,8 @@ async function loginWithMicrosoft() {
       account: account
     });
 
-    const accessToken = tokenResponse.accessToken;
-    
-    console.log('Decoded Access Token:', JSON.parse(atob(accessToken.split('.')[1])));
-    console.log('API Token:', accessToken);
-
+    const accessToken = tokenResponse.idToken;
+  
     // Token speichern
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('email', account.username);
