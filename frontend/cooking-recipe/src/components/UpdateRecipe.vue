@@ -2,18 +2,18 @@
     <div class="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl w-full space-y-8 bg-white p-10 rounded-xl shadow-md">
             <div class="flex justify-between items-center">
-                <router-link to="/" class="text-indigo-600 hover:text-indigo-800 focus:outline-indigo-500">
+                <router-link :to="`/recipe/${recipeId}`" class="text-indigo-600 hover:text-indigo-800 focus:outline-indigo-500">
                     <ArrowLeftIcon color="black" class="h-8 w-8" />
                 </router-link>
                 <div>
-                    <h2 class="text-center text-3xl font-extrabold text-gray-900">Rezept erstellen</h2>
+                    <h2 class="text-center text-3xl font-extrabold text-gray-900">Rezept bearbeiten</h2>
                     <p class="mt-2 text-center text-sm text-gray-600">
-                        Fügen Sie alle Details Ihres Rezepts hinzu
+                        Aktualisieren Sie die Details Ihres Rezepts
                     </p>
                 </div>
                 <div class="w-8"></div>
             </div>
-            <form @submit.prevent="createRecipe" class="mt-8 space-y-6">
+            <form @submit.prevent="updateRecipe" class="mt-8 space-y-6">
                 <div class="space-y-4">
                     <div>
                         <label for="title" class="block text-lg font-medium text-gray-900">Titel</label>
@@ -32,14 +32,10 @@
                     <h3 class="text-lg font-medium text-gray-900">Zutaten</h3>
                     <div v-for="(ingredient, index) in recipe.ingredients" :key="index" class="flex flex-col sm:flex-row gap-4">
                         <div class="flex-1">
-                            <select 
-                                v-model="ingredient.id" 
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500"
-                                required
-                            >
-                                <option value="" disabled selected>Zutat auswählen</option>
-                                <option v-for="availableIngredient in getFilteredIngredients(index)" :key="availableIngredient.id" :value="availableIngredient.id">
-                                {{ availableIngredient.name }}
+                            <select v-model="ingredient.id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500" required>
+                                <option value="" disabled>Zutat auswählen</option>
+                                <option v-for="availableIngredient in getFilteredIngredients(index)" :value="availableIngredient.id" :key="availableIngredient.id" >
+                                    {{ availableIngredient.name }}
                                 </option>
                             </select>
                         </div>
@@ -107,7 +103,7 @@
                     <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium 
                     text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
-                        Rezept speichern
+                        Rezept aktualisieren
                     </button>
                 </div>
             </form>
@@ -116,39 +112,73 @@
 </template>
   
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, ArrowLeftIcon } from 'lucide-vue-next'
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, ArrowLeftIcon } from 'lucide-vue-next';
 import recipeService  from '../services/recipeService.js';
 
+const route = useRoute();
 const router = useRouter();
+const recipeId = route.params.id;
 
 const recipe = ref({
     title: '',
     description: '',
-    ingredients: [{ id: null, amount: 0, unit: 'g' }],
+    ingredients: [{ id: null, name:'', amount: 0, unit: 'g' }],
     steps: [{ instruction: '' }]
-})
+});
+
+const originalSteps = ref([]);
+const originalIngredients = ref([]);
 
 const availableIngredients = ref([])
 
+const ingredientRecipes = ref([
+    {
+        id: Number,
+        amount: Number,
+        unit: '',
+        related_recipe_id: Number,
+        related_ingredient_id: Number
+    }
+]);
+
 onMounted(async () => {
     try {
-        const response = await recipeService.getIngredients()
-        availableIngredients.value = response.data
+        const ingredientResponse = await recipeService.getIngredients()
+        availableIngredients.value = ingredientResponse.data
+
+        const response = await recipeService.getRecipe(recipeId);
+        recipe.value = response.data;
+        const allRelations = (await recipeService.getRecipeIngredients()).data;
+        ingredientRecipes.value = allRelations.filter(ir => ir.related_recipe_id === Number(recipeId));
+
+        recipe.value.ingredients = recipe.value.ingredients.map(ingredient => {
+        const match = availableIngredients.value.find(item => item.name === ingredient.name);
+        const relation = ingredientRecipes.value.find(ir => ir.related_ingredient_id === match?.id);
+
+        return {
+            ...ingredient,
+            id: match ? match.id : null,
+            relationId: relation ? relation.id : null 
+        };
+        });
+        originalSteps.value = [...recipe.value.steps];
+        originalIngredients.value = [...recipe.value.ingredients];
     } catch (error) {
-        console.error('Fehler beim Abrufen der Zutaten:', error)
+        console.error('Failed to fetch recipe:', error);
     }
-})
+
+});
 
 function addIngredient() {
-  recipe.value.ingredients.push({ name: '', amount: '', unit: 'g' })
+  recipe.value.ingredients.push({ id: null, name: '', amount: '', unit: 'g' });
 }
 
 function removeIngredient(index) {
-  recipe.value.ingredients.splice(index, 1)
+  recipe.value.ingredients.splice(index, 1);
   if (recipe.value.ingredients.length === 0) {
-    addIngredient()
+    addIngredient();
   }
 }
 
@@ -163,57 +193,94 @@ function getFilteredIngredients(currentIndex) {
 }
 
 function addStep() {
-  recipe.value.steps.push({ instruction: '' })
+  recipe.value.steps.push({ instruction: '' });
 }
 
 function removeStep(index) {
-  recipe.value.steps.splice(index, 1)
+  recipe.value.steps.splice(index, 1);
   if (recipe.value.steps.length === 0) {
-    addStep()
+    addStep();
   }
 }
 
 function moveStep(index, direction) {
-  const newIndex = index + direction
+  const newIndex = index + direction;
   if (newIndex >= 0 && newIndex < recipe.value.steps.length) {
-    const steps = recipe.value.steps
-    ;[steps[index], steps[newIndex]] = [steps[newIndex], steps[index]]
+    const steps = recipe.value.steps;
+    [steps[index], steps[newIndex]] = [steps[newIndex], steps[index]];
   }
 }
 
-async function createRecipe() {
-  const newRecipe = {
-    ...recipe.value,
-    created_at: new Date().toISOString(),
-    steps: recipe.value.steps
-      .filter(step => step.instruction.trim() !== '')
-      .map((step, index) => ({
-        ...step,
-        step_number: index + 1
-      }))
-  }
+async function updateRecipe() {
+    const updatedRecipe = {
+        ...recipe.value,
+        updated_at: new Date().toISOString(),
+        steps: recipe.value.steps
+        .filter(step => step.instruction.trim() !== '')
+        .map((step, index) => ({
+            ...step,
+            step_number: index + 1
+        }))
+    };
 
-  const createdRecipe = await recipeService.createRecipe(newRecipe)
+    const validIngredients = updatedRecipe.ingredients.filter(ingredient => ingredient.id);
+    const updatedIngredientIds = validIngredients.map(ing => ing.id);
 
-  for (const ingredient of newRecipe.ingredients) {
-    await recipeService.createRecipeIngredient({
-        related_ingredient_id: ingredient.id,
-        amount: ingredient.amount,
-        unit: ingredient.unit,
-        related_recipe_id: createdRecipe.data.id
-    })
-  }
+    const originalStepIds = originalSteps.value.map(step => step.id).filter(Boolean);
+    const updatedStepIds = updatedRecipe.steps.map(step => step.id).filter(Boolean);
+    const stepsToDelete = originalStepIds.filter(id => !updatedStepIds.includes(id));
 
-  for (const step of newRecipe.steps) {
-    await recipeService.createStep({
-        instruction: step.instruction,
-        step_number: step.step_number,
-        related_recipe_id: createdRecipe.data.id,
-        title: 'Titel',
-    })
-  }
+    await recipeService.updateRecipe(recipeId, {
+        title: updatedRecipe.title,
+        description: updatedRecipe.description
+    });
 
-  router.push('/')
+    for (const ingredient of validIngredients) {
+        if (!ingredient.relationId) {
+            await recipeService.createRecipeIngredient({
+                amount: ingredient.amount,
+                unit: ingredient.unit,
+                related_recipe_id: recipeId,
+                related_ingredient_id: ingredient.id
+            });
+        } else {
+            await recipeService.updateRecipeIngredient(ingredient.relationId, {
+                amount: ingredient.amount,
+                unit: ingredient.unit
+            });
+        }
+    }
+
+    const relationsToDelete = ingredientRecipes.value.filter(
+        ir => !updatedIngredientIds.includes(ir.related_ingredient_id)
+    );
+
+    for (const rel of relationsToDelete) {
+        await recipeService.deleteRecipeIngredient(rel.id);
+    }
+
+    for (const stepId of stepsToDelete) {
+        await recipeService.deleteStep(stepId);
+    }
+
+    for (const step of updatedRecipe.steps) {
+        if (!step.id) {
+        const newStep = await recipeService.createStep({
+            instruction: step.instruction,
+            step_number: step.step_number,
+            related_recipe_id: recipeId,
+            title: 'Titel',
+        });
+        step.id = newStep.data.id;
+        } else {
+        await recipeService.updateStep(step.id, {
+            instruction: step.instruction,
+            step_number: step.step_number
+        });
+        }
+    }
+
+    router.push(`/recipe/${recipeId}`);
 }
 
 </script>
